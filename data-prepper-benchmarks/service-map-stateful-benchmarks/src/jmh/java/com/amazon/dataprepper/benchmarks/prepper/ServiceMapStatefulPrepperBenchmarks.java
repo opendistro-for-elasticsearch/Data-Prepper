@@ -1,5 +1,6 @@
 package com.amazon.dataprepper.benchmarks.prepper;
 
+import com.amazon.dataprepper.model.configuration.PluginSetting;
 import com.amazon.dataprepper.plugins.prepper.ServiceMapStatefulPrepper;
 import com.google.protobuf.ByteString;
 import com.amazon.dataprepper.model.record.Record;
@@ -9,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -27,7 +29,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
-import org.openjdk.jmh.annotations.Warmup;
 
 @State(Scope.Thread)
 public class ServiceMapStatefulPrepperBenchmarks {
@@ -47,9 +48,15 @@ public class ServiceMapStatefulPrepperBenchmarks {
     @Param(value = "60")
     private int windowDurationSeconds;
 
+    @Param(value = "1")
+    private int processWorkers;
+
     @Setup(Level.Trial)
     public void setupServiceMapStatefulPrepper() {
-        serviceMapStatefulPrepper = new ServiceMapStatefulPrepper(windowDurationSeconds*1000, new File(DB_PATH), Clock.systemDefaultZone());
+        final PluginSetting pluginSetting = new PluginSetting("service-map-test", new HashMap<>()) {{
+            setPipelineName("test-pipeline");
+        }};
+        serviceMapStatefulPrepper = new ServiceMapStatefulPrepper(windowDurationSeconds*1000, new File(DB_PATH), Clock.systemDefaultZone(), processWorkers, pluginSetting);
     }
 
     /**
@@ -111,41 +118,8 @@ public class ServiceMapStatefulPrepperBenchmarks {
 
     @Benchmark
     @Fork(value = 1)
-    @Warmup(iterations = 0)
     @Threads(1)
-    public void benchmarkExecute_1_thread() {
-        serviceMapStatefulPrepper.execute(batch);
-    }
-
-    @Benchmark
-    @Fork(value = 1)
-    @Warmup(iterations = 0)
-    @Threads(2)
-    public void benchmarkExecute_2_threads() {
-        serviceMapStatefulPrepper.execute(batch);
-    }
-
-    @Benchmark
-    @Fork(value = 1)
-    @Warmup(iterations = 0)
-    @Threads(4)
-    public void benchmarkExecute_4_threads() {
-        serviceMapStatefulPrepper.execute(batch);
-    }
-
-    @Benchmark
-    @Fork(value = 1)
-    @Warmup(iterations = 0)
-    @Threads(8)
-    public void benchmarkExecute_8_threads() {
-        serviceMapStatefulPrepper.execute(batch);
-    }
-
-    @Benchmark
-    @Fork(value = 1)
-    @Warmup(iterations = 0)
-    @Threads(16)
-    public void benchmarkExecute_16_threads() {
+    public void benchmarkExecute() {
         serviceMapStatefulPrepper.execute(batch);
     }
 
