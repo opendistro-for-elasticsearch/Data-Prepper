@@ -23,7 +23,7 @@ fi
 
 PIPELINES_FILE_LOCATION=$1
 CONFIG_FILE_LOCATION=$2
-MIN_REQ_JAVA_VERSION=1.8
+MIN_REQ_JAVA_VERSION=8
 MIN_REQ_OPENJDK_VERSION=8
 DATA_PREPPER_HOME=$(dirname $(realpath $0))
 EXECUTABLE_JAR=$(ls -1 $DATA_PREPPER_HOME/bin/*.jar 2>/dev/null)
@@ -47,7 +47,7 @@ fi
 if [[ "$_java" ]]
 then
     java_type=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $1}')
-    java_version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}' | sed 's/\(.*\..*\)\..*/\1/g')
+    java_version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}' | sed '/^1\./s///' | cut -d'.' -f1)
     echo "Found $java_type of $java_version"
     if [[ $java_type == *"openjdk"* ]]
     then
