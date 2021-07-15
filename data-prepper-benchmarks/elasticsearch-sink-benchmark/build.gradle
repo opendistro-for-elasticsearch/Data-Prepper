@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+group 'com.amazon'
+version '0.1-beta'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    jmh {
+        java.srcDirs = ['src/jmh/java']
+    }
+}
+
+task jmh(type: JavaExec, dependsOn: jmhClasses) {
+    classpath = sourceSets.jmh.runtimeClasspath
+    main = 'org.openjdk.jmh.Main'
+}
+
+shadowJar {
+    from sourceSets.jmh.output
+    from sourceSets.main.output
+    from project.configurations.jmhRuntime
+
+    manifest {
+        attributes("Main-Class": "org.openjdk.jmh.Main")
+    }
+}
+
+dependencies {
+    jmhCompile project(':data-prepper-plugins:otel-trace-raw-prepper')
+    jmhCompile project(':data-prepper-plugins:elasticsearch')
+    jmhCompile "com.fasterxml.jackson.core:jackson-databind:2.12.1"
+    jmhCompile "io.opentelemetry:opentelemetry-proto:${versionMap.opentelemetry_proto}"
+    jmhCompile 'org.openjdk.jmh:jmh-core:1.25'
+    jmhAnnotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess:1.25'
+}
